@@ -143,7 +143,7 @@ Example is from Operations_Dataset.Distribution_Material_Handlers (Line 2 AND Li
     WHEN EXTRACT(dayofweek FROM JTM.PR_End_date) = 7 
     THEN LAST_DAY(MT.trans_date, WEEK(SUNDAY)) 
     WHEN EXTRACT(dayofWeek FROM JTM.PR_End_date) = 3 
-    THEN LAST_DAY(MT.trans_date, WEEK(MONDAY))
+    THEN LAST_DAY(MT.trans_date, WEEK(WEDNESDAY))
   END AS Payroll_Week
     -- when JTM.PR_End_date is 7, Payroll Week day is a Saturday vs
     -- when JTM.PR_End_date is 3, Payroll Week day is Tuesday (side note: there were no examples of this instance in this particular query)
