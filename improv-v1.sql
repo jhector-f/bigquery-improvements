@@ -140,11 +140,13 @@ Example is from Operations_Dataset.Distribution_Material_Handlers (Line 2 AND Li
 -- New Code
 
   CASE
-    WHEN EXTRACT(dayofweek FROM JTM.PR_End_date) = 7 -- when JTM.PR_End_date is 7, Payroll Week day is a Saturday
+    WHEN EXTRACT(dayofweek FROM JTM.PR_End_date) = 7 
     THEN LAST_DAY(MT.trans_date, WEEK(SUNDAY)) 
-    WHEN EXTRACT(dayofWeek FROM JTM.PR_End_date) = 3 -- when JTM.PR_End_date is 3, Payroll Week day is Tuesday (side note: there were no examples of this instance in this code)
+    WHEN EXTRACT(dayofWeek FROM JTM.PR_End_date) = 3 
     THEN LAST_DAY(MT.trans_date, WEEK(MONDAY))
   END AS Payroll_Week
+    -- when JTM.PR_End_date is 7, Payroll Week day is a Saturday vs
+    -- when JTM.PR_End_date is 3, Payroll Week day is Tuesday (side note: there were no examples of this instance in this particular query)
 
 -- Old Code
 CASE
@@ -178,5 +180,6 @@ CASE
     THEN (DATE(MT.trans_date) + 2)
   END AS Payroll_Week
 
-/* I updated Operations_Dataset.Job_Complete_Data to make it more readable. No syntax/function changes*/
-
+-- I updated Operations_Dataset.Job_Complete_Data to make it more readable. No syntax/function changes
+-- Note 7/3/2024 : Started saving Operations_Dataset.Monthly_Prod_Goals and on (following list) with previous improvements
+-- Note 7/3/2024 : Left off at Paint_Dataset.Buffing_Labor Hours
