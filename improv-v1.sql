@@ -78,5 +78,105 @@ WHERE
   or jr.wc = 'TRK2'
    or dept.description like 'ELE%'
 
---NOTE TO  SELF:: Ended on Fabrication_Dataset.Item_Transactions
+/* 4. CASE/WHEN statements
+This is more of a note for me for queries that CAN  use this. When using a CASE/WHEN statement where all the arguments are the same, you can write it as follows where the argument is presented first.
+IF more conditions are needed other than "=" (i.e. multiple conditions need to be met for one assignment), the following cannot be used.
+Example is from Interior_Dataset.Interior_WC_Completed (Line 5)
+*/
+-- New Code
+  CASE jcd.wc
+    WHEN 'SLG'
+    THEN 1
+    WHEN 'PPR'
+    THEN 2
+    WHEN 'FLR'
+    THEN 3
+    WHEN 'IEL'
+    THEN 4
+    WHEN  'AWP'
+    THEN 5
+    WHEN 'ACT'
+    THEN 6
+    WHEN 'FEL'  --notice how 'AIR', 'FRN', and 'OPT' are missing. They need an OR for the logic but it cannot be used with this syntax (without explicit assignment)
+    THEN 8
+    WHEN 'FLROPT'
+    THEN 9
+    WHEN 'PRD'
+    THEN 10
+    ELSE null
+  END as sequence,
+-- Old Code    
+    CASE 
+    WHEN jcd.wc = 'SLG'
+    THEN 1
+    WHEN jcd.wc = 'PPR'
+    THEN 2
+    WHEN jcd.wc = 'FLR'
+    THEN 3
+    WHEN jcd.wc = 'IEL'
+    THEN 4
+    WHEN jcd.wc = 'AWP'
+    THEN 5
+    WHEN jcd.wc = 'ACT'
+    THEN 6
+    WHEN (jcd.wc = 'AIR' or jcd.wc = 'FRN' or jcd.wc = 'OPT')
+    THEN 7
+    WHEN jcd.wc = 'FEL'
+    THEN 8
+    WHEN jcd.wc = 'FLROPT'
+    THEN 9
+    WHEN jcd.wc = 'PRD'
+    THEN 10
+    ELSE null
+  END as sequence,
+
+/* 5. LAST_DAY Function
+In an instance where dates are pushed to a certain day of the week (i.e. marking the end day of a certain period of time), 
+use the LAST_DAY function instead of a CASE/WHEN to match every different condition.
+In the following example, it helped that every date was converging to the same day.
+Example is from Operations_Dataset.Distribution_Material_Handlers (Line 2 AND Line 81)
+*/
+
+-- New Code
+
+  CASE
+    WHEN EXTRACT(dayofweek FROM JTM.PR_End_date) = 7 -- when JTM.PR_End_date is 7, Payroll Week day is a Saturday
+    THEN LAST_DAY(MT.trans_date, WEEK(SUNDAY)) 
+    WHEN EXTRACT(dayofWeek FROM JTM.PR_End_date) = 3 -- when JTM.PR_End_date is 3, Payroll Week day is Tuesday (side note: there were no examples of this instance in this code)
+    THEN LAST_DAY(MT.trans_date, WEEK(MONDAY))
+  END AS Payroll_Week
+
+-- Old Code
+CASE
+    WHEN EXTRACT(dayofweek FROM MT.trans_date) = 1 AND EXTRACT(dayofweek FROM JTM.PR_End_date) = 7 
+    THEN (DATE(MT.trans_date) + 6)
+    WHEN EXTRACT(dayofweek FROM MT.trans_date) = 2 AND EXTRACT(dayofweek FROM JTM.PR_End_date) = 7 
+    THEN (DATE(MT.trans_date) +5)
+    WHEN EXTRACT(dayofweek FROM MT.trans_date) = 3 AND EXTRACT(dayofweek FROM JTM.PR_End_date) = 7 
+    THEN (DATE(MT.trans_date) +4)
+    WHEN EXTRACT(dayofweek FROM MT.trans_date) = 4 AND EXTRACT(dayofweek FROM JTM.PR_End_date) = 7 
+    THEN (DATE(MT.trans_date) +3)
+    WHEN EXTRACT(dayofweek FROM MT.trans_date) = 5 AND EXTRACT(dayofweek FROM JTM.PR_End_date) = 7 
+    THEN (DATE(MT.trans_date) +2)
+    WHEN EXTRACT(dayofweek FROM MT.trans_date) = 6 AND EXTRACT(dayofweek FROM JTM.PR_End_date) = 7 
+    THEN (DATE(MT.trans_date) +1)
+    WHEN EXTRACT(dayofweek FROM MT.trans_date) = 7 AND EXTRACT(dayofweek FROM JTM.PR_End_date) = 7 
+    THEN (DATE(MT.trans_date) +0)
+    WHEN EXTRACT(dayofweek FROM MT.trans_date) = 4 AND EXTRACT(dayofweek FROM JTM.PR_End_date) = 3 
+    THEN (DATE(MT.trans_date) - 1)
+    WHEN EXTRACT(dayofweek FROM MT.trans_date) = 5 AND EXTRACT(dayofweek FROM JTM.PR_End_date) = 3 
+    THEN (DATE(MT.trans_date) - 2)
+    WHEN EXTRACT(dayofweek FROM MT.trans_date) = 6 AND EXTRACT(dayofweek FROM JTM.PR_End_date) = 3 
+    THEN (DATE(MT.trans_date) -3)
+    WHEN EXTRACT(dayofweek FROM MT.trans_date) = 7 AND EXTRACT(dayofweek FROM JTM.PR_End_date) = 3 
+    THEN (DATE(MT.trans_date) - 4)
+    WHEN EXTRACT(dayofweek FROM MT.trans_date) = 3 AND EXTRACT(dayofweek FROM JTM.PR_End_date) = 3 
+    THEN (DATE(MT.trans_date) + 0)
+    WHEN EXTRACT(dayofweek FROM MT.trans_date) = 2 AND EXTRACT(dayofweek FROM JTM.PR_End_date) = 3 
+    THEN (DATE(MT.trans_date) + 1)
+    WHEN EXTRACT(dayofweek FROM MT.trans_date) = 1 AND EXTRACT(dayofweek FROM JTM.PR_End_date) = 3 
+    THEN (DATE(MT.trans_date) + 2)
+  END AS Payroll_Week
+
+/* I updated Operations_Dataset.Job_Complete_Data to make it more readable. No syntax/function changes*/
 
