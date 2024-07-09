@@ -32,14 +32,14 @@ Example is from Dev_Dataset.Distribution_Dashboard: (line ??)
 
 /* 2. Changing Cases
 In instances where the unit number is lowercase (e00000 instead of E00000), replace with functions that capitalize, trim, then concatenate
-Example is from Dev_Dataset.Hours_by_Employees (line: ??) 
+Example is from Dev_Dataset.Hours_by_Employees (line: ??) (Additional note: the original field name is [jtran.job.] I replaced the field with [job] for ease of replication
 */
 /* Theres also a STARTS_WITH() function instead of 'a%'? */
 -- New Code:
 CASE
-  WHEN jtran.job LIKE ANY ('e%', 'x%', 'q%')
-  THEN CONCAT(UPPER(LEFT(jtran.job, 1)), TRIM(jtran.job,'exq'))
-  ELSE jtran.job
+  WHEN job LIKE ANY ('e%', 'x%', 'q%')
+  THEN CONCAT(UPPER(LEFT(job, 1)), TRIM(job,'exq'))
+  ELSE job
 END as job
 
 -- Old Code:
@@ -79,7 +79,7 @@ WHERE
    or dept.description like 'ELE%'
 
 /* 4. CASE/WHEN statements
-This is more of a note for me for queries that CAN  use this. When using a CASE/WHEN statement where all the arguments are the same, you can write it as follows where the argument is presented first.
+This is more of a note for me for queries that CANuse this. When using a CASE/WHEN statement where all the arguments are the same, you can write it as follows where the argument is presented first.
 IF more conditions are needed other than "=" (i.e. multiple conditions need to be met for one assignment), the following cannot be used.
 Example is from Interior_Dataset.Interior_WC_Completed (Line 5)
 */
@@ -141,9 +141,9 @@ Example is from Operations_Dataset.Distribution_Material_Handlers (Line 2 AND Li
 
   CASE
     WHEN EXTRACT(dayofweek FROM JTM.PR_End_date) = 7 
-    THEN LAST_DAY(MT.trans_date, WEEK(SUNDAY)) 
+    THEN LAST_DAY(MT.trans_date, WEEK(SUNDAY)) -- Argument is thefirst day of the week (Sunday 1 - Saturday 7)
     WHEN EXTRACT(dayofWeek FROM JTM.PR_End_date) = 3 
-    THEN LAST_DAY(MT.trans_date, WEEK(WEDNESDAY))
+    THEN LAST_DAY(MT.trans_date, WEEK(WEDNESDAY)) -- (Wednesday 4 - Tuesday 3)
   END AS Payroll_Week
     -- when JTM.PR_End_date is 7, Payroll Week day is a Saturday vs
     -- when JTM.PR_End_date is 3, Payroll Week day is Tuesday (side note: there were no examples of this instance in this particular query)
@@ -183,3 +183,38 @@ CASE
 -- I updated Operations_Dataset.Job_Complete_Data to make it more readable. No syntax/function changes
 -- Note 7/3/2024 : Started saving Operations_Dataset.Monthly_Prod_Goals and on (following list) with previous improvements
 -- Note 7/3/2024 : Left off at Paint_Dataset.Buffing_Labor Hours
+
+/* Paint_Dataset.Paint_Labor_Utilization has something strange I can't figure out with the naming of the fields
+BQ asks if the proper field name is PR End Date (sans underscores) instead of PR_End_Date in Line 61, even though the field with the underscores
+is used throughout the statement
+*/
+
+WHERE
+    /*Home_Dept NOT IN ('OFFICERS',
+      'EXECUTIVE',
+      'MIS',
+      'SERVICE',
+      'HUMAN RESOURCES',
+      'DISTRIBUTION',
+      'SALES',
+      'ACCOUNTS',
+      'TRANSPORTATION',
+      'PURCHASING')
+    AND Home_Dept NOT LIKE 'ENG%'
+    AND Home_Dept NOT LIKE 'MIS%'
+    AND Home_Dept NOT LIKE 'CONTINUOUS%'
+    AND*/ PR_End_Date >'2017-08-21'
+-- In Job_Time_Master_2019, the field [PR End Date] is used, I don't know how long for. Should it be changed? 
+--The other JTMs with 2018, 2022 dates use the underscores */
+
+/* 6. DIVISION BY ZERO
+To fix a division by zero problem, use the following.
+(This error has occured before and was fixed with the same statement)
+Example from Supply_Chain_Dataset.Avg_Cycle_Count (line 11)
+*/
+
+-- New Code
+ (1 - sum(abs_error__)/NULLIF(SUM(precount_ext_cost), 0)) * 100 as value_accuracy
+-- Old Code
+(1 - sum(abs_error__)/SUM(precount_ext_cost)) * 100 as value_accuracy
+
