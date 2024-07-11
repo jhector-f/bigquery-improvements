@@ -80,7 +80,7 @@ WHERE
 
 /* 4. CASE/WHEN statements
 This is more of a note for me for queries that CANuse this. When using a CASE/WHEN statement where all the arguments are the same, you can write it as follows where the argument is presented first.
-IF more conditions are needed other than "=" (i.e. multiple conditions need to be met for one assignment), the following cannot be used.
+IF more conditions are needed other than "=" (i.e. multiple conditions need to be met for one assignment), the following cannot be used unless each statement is written out explicitly.
 Example is from Interior_Dataset.Interior_WC_Completed (Line 5)
 */
 -- New Code
@@ -97,7 +97,13 @@ Example is from Interior_Dataset.Interior_WC_Completed (Line 5)
     THEN 5
     WHEN 'ACT'
     THEN 6
-    WHEN 'FEL'  --notice how 'AIR', 'FRN', and 'OPT' are missing. They need an OR for the logic but it cannot be used with this syntax (without explicit assignment)
+    WHEN 'AIR'
+    THEN 7
+    WHEN 'FRN'
+    THEN 7
+    WHEN 'OPT'
+    THEN 7
+    WHEN 'FEL' 
     THEN 8
     WHEN 'FLROPT'
     THEN 9
@@ -186,7 +192,7 @@ CASE
 
 /* Paint_Dataset.Paint_Labor_Utilization has something strange I can't figure out with the naming of the fields
 BQ asks if the proper field name is PR End Date (sans underscores) instead of PR_End_Date in Line 61, even though the field with the underscores
-is used throughout the statement
+is used throughout the statement.
 */
 
 WHERE
@@ -205,7 +211,9 @@ WHERE
     AND Home_Dept NOT LIKE 'CONTINUOUS%'
     AND*/ PR_End_Date >'2017-08-21'
 -- In Job_Time_Master_2019, the field [PR End Date] is used, I don't know how long for. Should it be changed? 
---The other JTMs with 2018, 2022 dates use the underscores */
+--The other JTMs with 2018, 2022 dates use the underscores
+-- I changed it in the downloaded csv. The Google Sheet Labor Data is still without underscores in the field names. Is there something in the import process that adds the underscores?
+
 
 /* 6. DIVISION BY ZERO
 To fix a division by zero problem, use the following.
@@ -218,3 +226,4 @@ Example from Supply_Chain_Dataset.Avg_Cycle_Count (line 11)
 -- Old Code
 (1 - sum(abs_error__)/SUM(precount_ext_cost)) * 100 as value_accuracy
 
+-- Note 7/10/2024 :  Looping back around to implement improvements in the rest of the queries ("Beginning" through Operations_Dataset.Monthly_Prod_Goals)
